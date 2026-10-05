@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14171c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Denkzettel">
+<title>Denkzettel</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14171c;
+    --bg-soft: #1b1f26;
+    --bg-softer: #222731;
+    --paper: #f6efde;
+    --paper-dim: #e9e0c9;
+    --ink: #1f2933;
+    --fog: #8792a0;
+    --amber: #e8a33d;
+    --line: rgba(246,239,222,0.10);
+    --ok: #7c9473;
+    --err: #d98a7a;
+
+    --c-sage: #7c9473;
+    --c-denim: #4f6d8c;
+    --c-plum: #7a5c7e;
+    --c-ochre: #c08a2e;
+    --c-rose: #b06a63;
+    --c-teal: #3f7d7a;
+    --c-indigo: #6a6a9c;
+    --c-slate: #5f6b78;
+
+    --display: 'Caveat', cursive;
+    --sans: 'Space Grotesk', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--paper);
+    font-family: var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body::before{
+    content:""; position: fixed; inset:0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(246,239,222,0.05) 1px, transparent 0);
+    background-size: 26px 26px; pointer-events: none; z-index: 0;
+  }
+  button, input, select, textarea{ font-family: inherit; }
+  button{ cursor:pointer; }
+  :focus-visible{ outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  .wrap{
+    position: relative; z-index: 1;
+    max-width: 720px; margin: 0 auto;
+    padding: 28px 16px 90px;
+  }
+
+  /* ---------- Kopf ---------- */
+  header.hero{ display:flex; align-items:flex-end; justify-content:space-between; gap: 12px; margin-bottom: 8px; }
+  .eyebrow{ font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); margin: 0 0 6px; }
+  h1{ font-family: var(--display); font-weight: 700; font-size: clamp(34px, 8vw, 48px); line-height: 1; margin: 0; }
+  h1 em{ font-style: normal; color: var(--amber); }
+  .icon-btn{
+    background: var(--bg-soft); border: 1px solid var(--line); color: var(--fog);
+    width: 40px; height: 40px; border-radius: 12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .icon-btn:hover{ color: var(--paper); border-color: rgba(246,239,222,.25); }
+
+  /* ---------- Hinweis-Banner ---------- */
+  .banner{
+    margin: 16px 0 0; padding: 12px 14px; border-radius: 12px;
+    background: rgba(232,163,61,.10); border: 1px solid rgba(232,163,61,.35);
+    font-size: 13.5px; line-height: 1.5; color: var(--paper-dim);
+    display:flex; gap: 12px; align-items:center; justify-content: space-between; flex-wrap: wrap;
+  }
+  .banner[hidden]{ display:none; }
+  .banner .small-btn{ flex-shrink: 0; }
+
+  /* ---------- Mikrofon ---------- */
+  .capture-zone{ display:flex; flex-direction:column; align-items:center; padding: 26px 0 8px; }
+  .big-mic{
+    width: 168px; height: 168px; border-radius: 50%;
+    border: none; background: var(--amber); color: #201400;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 6px;
+    box-shadow: 0 22px 50px -18px rgba(232,163,61,.65), inset 0 -6px 0 rgba(0,0,0,.12);
+    transition: transform .15s ease, background .2s ease;
+    position: relative;
+  }
+  .big-mic:active{ transform: scale(.97); }
+  .big-mic .lbl{ font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+  .big-mic.listening{ background: #f0b65a; animation: ring 1.3s ease-out infinite; }
+  .big-mic.listening .lbl::after{ content: ' …'; }
+  @keyframes ring{
+    0%{ box-shadow: 0 0 0 0 rgba(232,163,61,.55), 0 22px 50px -18px rgba(232,163,61,.65); }
+    100%{ box-shadow: 0 0 0 34px rgba(232,163,61,0), 0 22px 50px -18px rgba(232,163,61,.65); }
+  }
+  .big-mic:disabled{ opacity: .45; cursor: default; animation: none; }
+  .mic-help{ margin: 14px 0 0; font-size: 13.5px; color: var(--fog); text-align:center; max-width: 40ch; line-height: 1.5; }
+  .mic-help b{ color: var(--paper-dim); font-weight: 500; }
+
+  .capture{
+    width: 100%; margin-top: 20px;
+    background: var(--paper); color: var(--ink);
+    border-radius: 14px; padding: 12px 14px 10px;
+    box-shadow: 0 18px 40px -18px rgba(0,0,0,.55);
+  }
+  textarea#noteInput{
+    width: 100%; min-height: 56px; resize: vertical; border: none; background: transparent;
+    font-family: var(--display); font-size: 23px; line-height: 1.3; color: var(--ink); padding: 2px;
+  }
+  textarea#noteInput::placeholder{ color: #9b8f74; }
+  textarea#noteInput:focus{ outline: none; }
+  .capture-row{
+    display:flex; align-items:center; justify-content: space-between; gap: 10px;
+    margin-top: 4px; padding-top: 8px; border-top: 1px dashed #d9cdae;
+  }
+  .capture-hint{ font-family: var(--mono); font-size: 11px; color: #8a7d5f; }
+  .file-btn{
+    font-weight: 600; font-size: 14px; background: var(--ink); color: var(--paper);
+    border: none; border-radius: 8px; padding: 9px 16px; flex-shrink: 0;
+  }
+  .file-btn:disabled{ opacity: .5; cursor: default; }
+
+  .status-line{ min-height: 20px; margin-top: 10px; font-family: var(--mono); font-size: 12.5px; color: var(--fog); text-align:center; }
+  .status-line.err{ color: var(--err); }
+
+  /* ---------- Bestätigungskarte ---------- */
+  .confirm{
+    margin-top: 6px; background: var(--bg-soft); border: 1px solid rgba(124,148,115,.5);
+    border-radius: 14px; padding: 14px 16px; animation: pop .25s ease;
+  }
+  .confirm[hidden]{ display:none; }
+  @keyframes pop{ from{ transform: translateY(6px); opacity:0;} to{ transform:none; opacity:1;} }
+  .confirm-head{ font-family: var(--mono); font-size: 11.5px; color: var(--ok); letter-spacing: .06em; text-transform: uppercase; }
+  .confirm-title{ font-family: var(--display); font-size: 26px; font-weight: 600; margin: 4px 0 6px; line-height: 1.15; }
+  .confirm-actions{ display:flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  .small-btn{
+    font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 8px;
+    background: transparent; color: var(--paper); border: 1px solid rgba(246,239,222,.22);
+  }
+  .small-btn:hover{ border-color: var(--amber); }
+  .small-btn.primary{ background: var(--amber); color: #201400; border-color: var(--amber); font-weight: 600; }
+
+  /* ---------- Chips ---------- */
+  .chips{ display:flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip{
+    display:inline-flex; align-items:center; gap: 5px;
+    font-family: var(--mono); font-size: 11.5px; color: var(--paper-dim);
+    background: rgba(246,239,222,.06); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 9px;
+  }
+  .chip.fired{ opacity: .45; text-decoration: line-through; }
+  .chip.date{ color: var(--amber); border-color: rgba(232,163,61,.35); }
+  .chip button{ background: none; border: none; color: var(--fog); padding: 0 0 0 2px; font-size: 12px; line-height: 1; }
+  .chip button:hover{ color: var(--err); }
+  .chip.add{ cursor:pointer; color: var(--fog); border-style: dashed; }
+  .chip.add:hover{ color: var(--paper); }
+
+  /* ---------- Abschnitte ---------- */
+  section.block{ margin-top: 34px; }
+  .block-head{ display:flex; align-items: baseline; justify-content: space-between; margin: 0 0 12px; gap: 10px; }
+  .block-head h2{ font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fog); margin: 0; }
+  .block-meta{ font-family: var(--mono); font-size: 12px; color: var(--fog); }
+
+  .empty-state{
+    border: 1px dashed var(--line); border-radius: 12px; padding: 22px 18px;
+    text-align: center; color: var(--fog); font-size: 14px; line-height: 1.5;
+  }
+  .empty-state strong{ display:block; font-family: var(--display); font-size: 22px; color: var(--paper); margin-bottom: 4px; font-weight: 600; }
+
+  /* ---------- Als Nächstes ---------- */
+  .upcoming{ display:flex; flex-direction:column; gap: 8px; }
+  .up-item{
+    display:flex; gap: 12px; align-items:center;
+    background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+  }
+  .up-when{ font-family: var(--mono); font-size: 12px; color: var(--amber); min-width: 92px; line-height: 1.35; }
+  .up-when small{ display:block; color: var(--fog); font-size: 10.5px; }
+  .up-text{ flex:1; font-size: 14.5px; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
+  .up-text small{ display:block; color: var(--fog); font-size: 11.5px; margin-top: 2px; }
+
+  /* ---------- Kalender ---------- */
+  .cal{ background: var(--bg-soft); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .cal-top{ display:flex; align-items:center; justify-content: space-between; margin-bottom: 8px; }
+  .cal-title{ font-family: var(--display); font-size: 26px; font-weight: 600; }
+  .cal-nav{ display:flex; gap: 6px; }
+  .cal-nav button{
+    background: transparent; border: 1px solid var(--line); color: var(--paper);
+    border-radius: 8px; height: 32px; min-width: 32px; padding: 0 10px; font-size: 13px;
+  }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
+  .cal-dow{ font-family: var(--mono); font-size: 10.5px; color: var(--fog); text-align:center; padding: 4px 0; text-transform: uppercase; }
+  .cal-day{
+    aspect-ratio: 1 / 1; min-height: 40px;
+    background: transparent; border: 1px solid transparent; border-radius: 10px;
+    color: var(--paper); font-size: 14px; font-family: var(--sans);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 4px; padding: 0;
+  }
+  .cal-day:hover{ background: rgba(246,239,222,.05); }
+  .cal-day.other{ color: #4b5563; }
+  .cal-day.today{ border-color: var(--amber); }
+  .cal-day.sel{ background: var(--amber); color: #201400; }
+  .cal-day.sel .dot{ box-shadow: 0 0 0 1.5px var(--amber); }
+  .dots{ display:flex; gap: 3px; height: 6px; }
+  .dot{ width: 6px; height: 6px; border-radius: 50%; }
+
+  .day-panel{ margin-top: 12px; }
+  .day-panel h3{ font-family: var(--display); font-size: 22px; font-weight: 600; margin: 4px 2px 8px; }
+
+  /* ---------- Ordner ---------- */
+  .area{ margin-bottom: 18px; }
+  .area-title{ display:flex; align-items:center; gap: 8px; font-family: var(--display); font-size: 25px; font-weight: 700; margin: 0 0 8px 2px; }
+  .area-title .cnt{ font-family: var(--mono); font-size: 11px; color: var(--fog); font-weight: 400; }
+  .folders{ display: flex; flex-direction: column; gap: 8px; }
+  .folder{ background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .folder-tab{
+    width: 100%; display:flex; align-items:center; gap: 12px; padding: 12px 14px;
+    background: transparent; border: none; color: var(--paper); text-align: left;
+  }
+  .folder-swatch{ width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .folder-name{ font-family: var(--display); font-size: 21px; font-weight: 600; flex: 1; }
+  .folder-count{ font-family: var(--mono); font-size: 11px; color: var(--fog); background: rgba(246,239,222,.06); border-radius: 999px; padding: 3px 9px; }
+  .folder-chevron{ color: var(--fog); transition: transform .2s ease; flex-shrink: 0; }
+  .folder.open .folder-chevron{ transform: rotate(90deg); }
+  .folder-notes{ display:none; }
+  .folder.open .folder-notes{ display:block; }
+
+  /* ---------- Eintrag ---------- */
+  .note-item{ padding: 12px 14px; border-top: 1px solid var(--line); display:flex; gap: 10px; align-items: flex-start; }
+  .day-panel .note-item, .search-results .note-item{ background: var(--bg-softer); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+  .chk{
+    width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; margin-top: 1px;
+    border: 1.5px solid rgba(246,239,222,.3); background: transparent; color: transparent; font-size: 13px; line-height: 1; padding: 0;
+  }
+  .chk:hover{ border-color: var(--ok); }
+  .note-item.done .chk{ background: var(--ok); border-color: var(--ok); color: var(--bg); }
+  .note-item.done .note-text{ text-decoration: line-through; opacity: .5; }
+  .note-body{ flex:1; min-width: 0; }
+  .note-text{ font-size: 15px; line-height: 1.45; color: #ece3cc; overflow-wrap: anywhere; }
+  .note-meta{ font-family: var(--mono); font-size: 10.5px; color: var(--fog); margin-top: 3px; }
+  .note-tools{ display:flex; gap: 6px; margin-top: 10px; align-items:center; flex-wrap: wrap; }
+  .note-tools select{
+    background: var(--bg); color: var(--paper-dim); border: 1px solid var(--line);
+    border-radius: 7px; font-size: 12px; padding: 5px 6px; max-width: 170px;
+  }
+  .tool-btn{
+    background: transparent; border: 1px solid var(--line); color: var(--fog);
+    border-radius: 7px; height: 28px; padding: 0 9px; font-size: 12px;
+  }
+  .tool-btn:hover{ color: var(--paper); border-color: rgba(246,239,222,.3); }
+  .tool-btn.del:hover{ color: var(--err); border-color: var(--err); }
+  .add-rem{ display:flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .add-rem[hidden]{ display:none; }
+  .add-rem input{
+    background: var(--bg); color: var(--paper); border: 1px solid var(--line);
+    border-radius: 7px; padding: 5px 8px; font-size: 13px; color-scheme: dark;
+  }
+
+  /* ---------- Einstellungen ---------- */
+  dialog{
+    background: var(--bg-soft); color: var(--paper); border: 1px solid var(--line);
+    border-radius: 16px; padding: 20px; width: min(440px, calc(100vw - 32px));
+  }
+  dialog::backdrop{ background: rgba(0,0,0,.6); }
+  dialog h2{ font-family: var(--display); font-size: 30px; margin: 0 0 4px; }
+  .set-row{ display:flex; align-items:center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .set-row:last-of-type{ border-bottom: none; }
+  .set-row input[type=time]{
+    background: var(--bg); color: var(--paper); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 8px; font-size: 14px; color-scheme: dark;
+  }
+  .set-note{ font-size: 12.5px; color: var(--fog); line-height: 1.5; margin: 6px 0 0; }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    z-index: 60; background: var(--paper); color: var(--ink);
+    border-radius: 12px; padding: 12px 16px; max-width: calc(100vw - 32px); width: 420px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.5); font-size: 14px; line-height: 1.45;
+    display:flex; gap: 12px; align-items: flex-start;
+  }
+  .toast[hidden]{ display:none; }
+  .toast b{ display:block; font-family: var(--display); font-size: 21px; }
+  .toast button{ margin-left:auto; background: var(--ink); color: var(--paper); border: none; border-radius: 8px; padding: 6px 10px; font-size: 13px; flex-shrink:0; }
+
+  footer.note{ margin-top: 46px; font-family: var(--mono); font-size: 11px; color: #4b5563; text-align: center; line-height: 1.6; }
+
+  @media (prefers-reduced-motion: reduce){
+    .big-mic.listening{ animation: none; }
+    .confirm{ animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Denkzettel · dein Butler</p>
+      <h1>Sag's mir, <em>ich</em> denk dran.</h1>
+    </div>
+    <button class="icon-btn" id="settingsBtn" title="Einstellungen" aria-label="Einstellungen">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <div class="banner" id="notifBanner" hidden>
+    <span id="notifBannerText">Erlaube Benachrichtigungen, damit ich dich zur richtigen Zeit erinnern kann.</span>
+    <button class="small-btn primary" id="notifAllowBtn">Erlauben</button>
+  </div>
+
+  <div class="capture-zone">
+    <button class="big-mic" id="micBtn" aria-label="Diktieren starten">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <span class="lbl" id="micLbl">Diktieren</span>
+    </button>
+    <p class="mic-help" id="micHelp">Tippen und lossprechen, z. B. <b>„Erinner mich am 1.12. um 12 Uhr an das Angebot für Müller“</b> oder <b>„In 3 Tagen Mama anrufen“</b>.</p>
+
+    <div class="capture">
+      <textarea id="noteInput" rows="2" enterkeyhint="done" placeholder="… oder hier tippen" maxlength="600"></textarea>
+      <div class="capture-row">
+        <span class="capture-hint">Enter = ablegen</span>
+        <button class="file-btn" id="fileBtn">Ablegen</button>
+      </div>
+    </div>
+    <div class="status-line" id="statusLine" aria-live="polite"></div>
+  </div>
+
+  <div class="confirm" id="confirmCard" hidden aria-live="polite"></div>
+
+  <section class="block">
+    <div class="block-head"><h2>Als Nächstes</h2><span class="block-meta" id="upMeta"></span></div>
+    <div id="upcomingArea"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>Kalender</h2><span class="block-meta" id="calMeta"></span></div>
+    <div class="cal" id="calendar"></div>
+    <div class="day-panel" id="dayPanel"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>Deine Ordner</h2><span class="block-meta" id="shelfCount"></span></div>
+    <div id="foldersArea"></div>
+  </section>
+
+  <footer class="note" id="footNote">Deine Notizen bleiben auf diesem Gerät. Für Push-Erinnerungen werden nur Titel und Zeitpunkt an den Server übertragen.</footer>
+</div>
+
+<dialog id="settingsDlg">
+  <h2>Einstellungen</h2>
+  <p class="set-note">Diese Zeiten gelten, wenn du beim Diktieren keine Uhrzeit nennst.</p>
+  <div class="set-row"><label for="t1">1. Erinnerung</label><input type="time" id="t1"></div>
+  <div class="set-row"><label for="t2">2. Erinnerung</label><input type="time" id="t2"></div>
+  <div class="set-row"><span>Alle Termine ins Handy</span><button class="small-btn" id="exportAllBtn">Kalenderdatei (.ics)</button></div>
+  <div class="set-row"><span>Push-Status</span><span id="pushStatus" class="block-meta" style="text-align:right">…</span></div>
+  <div class="set-row"><span>Push testen</span><button class="small-btn" id="testNotifBtn">Test senden</button></div>
+  <p class="set-note" id="pushNote">Ist Push aktiv, schickt der Server deine Erinnerungen pünktlich, auch wenn Denkzettel geschlossen ist.</p>
+  <div class="confirm-actions" style="justify-content:flex-end">
+    <button class="small-btn primary" id="settingsClose">Fertig</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" hidden role="alert"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* =====================================================================
+     Ordner-Struktur
+     ===================================================================== */
+  const AREAS = ['Arbeit', 'Privat'];
+  const FOLDERS = {
+    Arbeit: ['Aufgaben', 'Termine', 'Kunden', 'Ideen'],
+    Privat: ['Haus', 'Familie', 'Gesundheit', 'Finanzen', 'Einkaufen', 'Auto', 'Freizeit', 'Ideen', 'Sonstiges'],
+  };
+  const FOLDER_COLORS = {
+    'Arbeit/Aufgaben': '--c-denim', 'Arbeit/Termine': '--c-indigo', 'Arbeit/Kunden': '--c-teal', 'Arbeit/Ideen': '--c-slate',
+    'Privat/Haus': '--c-ochre', 'Privat/Familie': '--c-rose', 'Privat/Gesundheit': '--c-sage', 'Privat/Finanzen': '--c-teal',
+    'Privat/Einkaufen': '--c-plum', 'Privat/Auto': '--c-indigo', 'Privat/Freizeit': '--c-sage', 'Privat/Ideen': '--amber',
+    'Privat/Sonstiges': '--c-slate',
+  };
+  function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function folderColor(area, folder){
+    const v = FOLDER_COLORS[area + '/' + folder];
+    if (v) return cssVar(v);
+    return area === 'Arbeit' ? cssVar('--c-denim') : cssVar('--c-slate');
+  }
+
+  // Stichwörter: Wortanfang wird verglichen ("kind" trifft "Kinder", "Kindergarten").
+  // Ein "$" am Ende heißt: nur das ganze Wort.
+  const WORK_FORCE = ['arbeit', 'beruflich', 'im büro', 'auf der arbeit', 'für die arbeit', 'firma'];
+  const PRIVATE_FORCE = ['privat'];
+  const WORK_WORDS = {
+    Termine:  ['meeting', 'besprechung', 'call$', 'telko', 'videocall', 'teams', 'zoom', 'konferenz', 'workshop', 'schulung', 'jour fixe', 'termin mit', 'präsentation', 'vortrag'],
+    Kunden:   ['kunde', 'kundin', 'angebot', 'auftrag', 'bestellung', 'lieferant', 'reklamation', 'vertrieb', 'akquise', 'portal'],
+    Ideen:    [],
+    Aufgaben: ['chef', 'chefin', 'kollege', 'kollegin', 'büro', 'projekt', 'deadline', 'bericht', 'protokoll', 'abteilung', 'mitarbeiter', 'team$', 'gizeh', 'urlaubsantrag', 'überstunden', 'dienstreise', 'schicht', 'baustelle', 'abgabe', 'freigabe', 'excel', 'powerpoint', 'konzept'],
+  };
+  const PRIVATE_WORDS = {
+    Haus:       ['haus$', 'wohnung', 'garten', 'putzen', 'staubsaug', 'müll', 'mülltonne', 'tonne', 'rasen', 'keller', 'dachboden', 'heizung', 'reparier', 'handwerker', 'waschmaschine', 'spülmaschine', 'fenster', 'streichen', 'renovier', 'lampe', 'glühbirne', 'wasserhahn', 'aufräum', 'wäsche', 'bügeln', 'bad$', 'küche', 'umzug', 'hecke', 'blumen', 'pflanzen', 'gießen', 'abfluss', 'schornstein', 'hausmeister', 'vermieter', 'nebenkosten', 'sperrmüll', 'wertstoff'],
+    Familie:    ['mama', 'mutter', 'papa', 'vater', 'oma', 'opa', 'kind', 'sohn', 'tochter', 'meine frau', 'mein mann', 'schatz', 'schwester', 'bruder', 'onkel', 'tante', 'cousin', 'neffe', 'nichte', 'familie', 'geburtstag', 'hochzeit', 'jahrestag', 'kita', 'schule', 'elternabend', 'schwieger', 'eltern', 'enkel', 'hausaufgaben', 'zeugnis'],
+    Gesundheit: ['arzt', 'ärztin', 'zahnarzt', 'hausarzt', 'tablette', 'medikament', 'rezept', 'apotheke', 'physio', 'krankengymnastik', 'sport', 'training', 'fitness', 'joggen', 'laufen', 'yoga', 'impfung', 'blutdruck', 'vorsorge', 'krankenkasse', 'massage', 'brille', 'optiker'],
+    Finanzen:   ['bank', 'überweis', 'steuer', 'rechnung', 'versicherung', 'konto', 'kündig', 'vertrag', 'miete', 'geld', 'finanzamt', 'rundfunk', 'gez', 'kredit', 'sparen', 'depot', 'aktie', 'abo', 'lastschrift', 'mahnung', 'zahlen', 'bezahlen'],
+    Einkaufen:  ['einkauf', 'kaufen', 'besorgen', 'supermarkt', 'milch', 'brot', 'eier', 'butter', 'käse', 'obst', 'gemüse', 'drogerie', 'dm$', 'rossmann', 'bestellen', 'amazon', 'baumarkt', 'geschenk', 'klopapier', 'waschmittel'],
+    Auto:       ['auto', 'tüv', 'werkstatt', 'reifen', 'ölwechsel', 'tanken', 'inspektion', 'kfz', 'führerschein', 'parkplatz', 'waschanlage'],
+    Freizeit:   ['urlaub', 'reise', 'flug', 'hotel', 'kino', 'konzert', 'freunde', 'treffen mit', 'hobby', 'buch', 'film', 'serie', 'restaurant', 'party', 'grillen', 'ausflug', 'wandern', 'fußball', 'verein', 'theater', 'packen'],
+    Ideen:      ['idee', 'vielleicht', 'könnte man', 'was wäre wenn', 'einfall', 'gedanke'],
+  };
+
+  function wordRegex(w){
+    const exact = w.endsWith('$');
+    const core = (exact ? w.slice(0, -1) : w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp('(?<![a-zäöüß])' + core + (exact ? '(?![a-zäöüß])' : ''), 'i');
+  }
+  function scoreWords(lower, words){
+    return words.reduce((s, w) => s + (wordRegex(w).test(lower) ? 1 : 0), 0);
+  }
+  function bestOf(lower, table){
+    let best = null, bestScore = 0;
+    for (const [folder, words] of Object.entries(table)){
+      const s = scoreWords(lower, words);
+      if (s > bestScore){ best = folder; bestScore = s; }
+    }
+    return { folder: best, score: bestScore };
+  }
+
+  function localClassify(text){
+    const lower = text.toLowerCase();
+    const work = bestOf(lower, WORK_WORDS);
+    const priv = bestOf(lower, PRIVATE_WORDS);
+    const isIdea = /(?<![a-zäöüß])(idee|einfall)/.test(lower);
+    const forceWork = WORK_FORCE.some(w => wordRegex(w).test(lower));
+    const forcePriv = PRIVATE_FORCE.some(w => wordRegex(w).test(lower));
+
+    const workTotal = Object.values(WORK_WORDS).reduce((s, ws) => s + scoreWords(lower, ws), 0);
+    const useWork = forceWork || (!forcePriv && workTotal > 0 && workTotal >= priv.score);
+
+    if (useWork){
+      return { area: 'Arbeit', folder: isIdea ? 'Ideen' : (work.folder || 'Aufgaben') };
+    }
+    if (isIdea) return { area: 'Privat', folder: 'Ideen' };
+    return { area: 'Privat', folder: priv.folder || 'Sonstiges' };
+  }
+
+  /* =====================================================================
+     Sprach-Parser: Datum, Uhrzeit, Erinnerungen
+     ===================================================================== */
+  const L = 'a-zäöüß';
+  const B = '(?<![' + L + '0-9])';   // Wortanfang (auch mit Umlauten)
+  const E = '(?![' + L + '0-9])';    // Wortende
+
+  const CARD = ['eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn'];
+  const UNITS = ['', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun'];
+  function cardinal(n){
+    if (n < 20) return CARD[n - 1];
+    const tens = n < 30 ? 'zwanzig' : 'dreißig';
+    return n % 10 === 0 ? tens : UNITS[n % 10] + 'und' + tens;
+  }
+  const NUM = { ein: 1, eine: 1, einen: 1, einem: 1, einer: 1, paar: 2 };
+  for (let n = 1; n <= 31; n++) NUM[cardinal(n)] = n;
+  const ORD19 = ['erst','zweit','dritt','viert','fünft','sechst','siebt','acht','neunt','zehnt','elft','zwölft','dreizehnt','vierzehnt','fünfzehnt','sechzehnt','siebzehnt','achtzehnt','neunzehnt'];
+  const ORD = {};
+  for (let n = 1; n <= 31; n++){
+    const base = n < 20 ? ORD19[n - 1] : cardinal(n) + 'st';
+    ['e', 'en', 'er'].forEach(s => { ORD[base + s] = n; });
+  }
+  const NUM_WORDS = Object.keys(NUM).sort((a, b) => b.length - a.length).join('|');
+  const ORD_WORDS = Object.keys(ORD).sort((a, b) => b.length - a.length).join('|');
+  const HOUR_WORDS = CARD.slice(0, 12).concat(['null']).sort((a, b) => b.length - a.length).join('|');
+  const HOURNUM = Object.assign({ null: 0 }, NUM);
+
+  const MONTHS = { januar: 1, jan: 1, jänner: 1, februar: 2, feb: 2, märz: 3, maerz: 3, april: 4, apr: 4, mai: 5, juni: 6, jun: 6, juli: 7, jul: 7, august: 8, aug: 8, september: 9, sept: 9, sep: 9, oktober: 10, okt: 10, november: 11, nov: 11, dezember: 12, dez: 12 };
+  const MONTH_WORDS = Object.keys(MONTHS).sort((a, b) => b.length - a.length).join('|');
+  const WEEKDAYS = ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag'];
+
+  function toNum(s){
+    if (s == null) return null;
+    s = String(s).toLowerCase().replace(/\.$/, '');
+    if (/^\d+$/.test(s)) return parseInt(s, 10);
+    if (s in HOURNUM) return HOURNUM[s];
+    if (s in ORD) return ORD[s];
+    return null;
+  }
+  function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function validDate(y, m, d){
+    const x = new Date(y, m - 1, d);
+    return x.getFullYear() === y && x.getMonth() === m - 1 && x.getDate() === d ? x : null;
+  }
+  function futureDate(day, month, year, today){
+    if (year != null){
+      if (year < 100) year += 2000;
+      return validDate(year, month, day);
+    }
+    let d = validDate(today.getFullYear(), month, day);
+    if (d && d < today) d = validDate(today.getFullYear() + 1, month, day);
+    return d;
+  }
+
+  function parseEntry(input, now, defaultTimes){
+    now = now || new Date();
+    const today = startOfDay(now);
+    const orig = input.replace(/\s+/g, ' ').trim();
+    let low = orig.toLowerCase();
+    let text = orig;
+
+    // Fundstelle ausblenden (gleiche Länge, damit Positionen stimmen)
+    function take(re){
+      const m = re.exec(low);
+      if (!m) return null;
+      const blank = ' '.repeat(m[0].length);
+      low = low.slice(0, m.index) + blank + low.slice(m.index + m[0].length);
+      text = text.slice(0, m.index) + blank + text.slice(m.index + m[0].length);
+      return m;
+    }
+    const R = (s) => new RegExp(s, 'i');
+
+    let exactAt = null;   // "in 2 Stunden"
+    let time = null;      // {h, m}
+    let date = null;      // Date (Tagesbeginn)
+    let m;
+
+    /* ---- relative Uhrzeit ---- */
+    if ((m = take(R(B + 'in\\s+einer\\s+halben\\s+stunde' + E)))){
+      exactAt = new Date(now.getTime() + 30 * 60000);
+    } else if ((m = take(R(B + 'in\\s+(\\d+|' + NUM_WORDS + ')\\s+(minuten|minute|min|stunden|stunde|std)\\.?' + E)))){
+      const n = toNum(m[1]);
+      if (n != null){
+        const mins = /^min/.test(m[2]) ? n : n * 60;
+        exactAt = new Date(now.getTime() + mins * 60000);
+      }
+    }
+
+    /* ---- Uhrzeit ---- */
+    const TIME_RULES = [
+      [B + 'um\\s+(\\d{1,2})[:.](\\d{2})(?:\\s*uhr)?' + E, (m) => ({ h: +m[1], m: +m[2] })],
+      [B + '(\\d{1,2})[:.](\\d{2})\\s*uhr' + E,             (m) => ({ h: +m[1], m: +m[2] })],
+      [B + '(\\d{1,2}):(\\d{2})' + E,                        (m) => ({ h: +m[1], m: +m[2] })],
+      [B + '(?:um\\s+|gegen\\s+|ab\\s+)?(\\d{1,2}|' + HOUR_WORDS + ')\\s*uhr(?:\\s+(\\d{1,2})(?![\\d.]))?' + E, (m) => ({ h: toNum(m[1]), m: m[2] ? +m[2] : 0 })],
+      [B + '(?:um|gegen)\\s+halb\\s+(\\d{1,2}|' + HOUR_WORDS + ')' + E, (m) => ({ h: (toNum(m[1]) + 23) % 24, m: 30 })],
+      [B + '(?:um|gegen)\\s+viertel\\s+nach\\s+(\\d{1,2}|' + HOUR_WORDS + ')' + E, (m) => ({ h: toNum(m[1]), m: 15 })],
+      [B + '(?:um|gegen)\\s+viertel\\s+vor\\s+(\\d{1,2}|' + HOUR_WORDS + ')' + E, (m) => ({ h: (toNum(m[1]) + 23) % 24, m: 45 })],
+      [B + '(?:um|gegen)\\s+(\\d{1,2}|' + HOUR_WORDS + ')(?![.\\d])' + E, (m) => ({ h: toNum(m[1]), m: 0 })],
+    ];
+    if (!exactAt){
+      for (const [re, fn] of TIME_RULES){
+        const mm = take(R(re));
+        if (mm){
+          const t = fn(mm);
+          if (t.h != null && t.h >= 0 && t.h <= 24 && t.m >= 0 && t.m < 60){ time = { h: t.h % 24, m: t.m }; break; }
+        }
+      }
+    }
+
+    /* ---- Tageszeit-Wörter (abends, morgens, ...) ---- */
+    let part = null;
+    const pm = take(R(B + '(?:(heute|morgen)\\s+)?(abends?|nachmittags?|mittags?|nachts?|morgens|früh|vormittags?)' + E));
+    if (pm){
+      part = pm[2].replace(/s$/, '');
+      if (pm[1]){ // "heute abend" / "morgen früh": Tageswort zurückgeben, damit es als Datum erkannt wird
+        const word = pm[1];
+        const idx = pm.index;
+        low = low.slice(0, idx) + word + low.slice(idx + word.length);
+      }
+    }
+    if (time){
+      if (part === 'abend' || part === 'nachmittag' || (part === 'nacht' && time.h >= 7) || (part === 'mittag' && time.h <= 4)){
+        if (time.h < 12) time.h += 12;
+      } else if (!part && time.h >= 1 && time.h <= 6){
+        time.h += 12; // "um 3" meint fast immer 15 Uhr
+      }
+    } else if (part && !exactAt){
+      const PART_TIME = { morgen: [8, 0], früh: [8, 0], vormittag: [10, 0], mittag: [12, 0], nachmittag: [15, 0], abend: [18, 0], nacht: [21, 0] };
+      const pt = PART_TIME[part];
+      if (pt) time = { h: pt[0], m: pt[1] };
+    }
+
+    /* ---- Datum ---- */
+    const DATE_RULES = [
+      [B + '(?:am\\s+)?übermorgen' + E, () => addDays(today, 2)],
+      [B + '(?:am\\s+)?morgen' + E,     () => addDays(today, 1)],
+      [B + 'heute' + E,                 () => today],
+      [B + 'in\\s+(\\d+|' + NUM_WORDS + ')\\s+(tagen|tage|tag|wochen|woche|monaten|monate|monat|jahren|jahr)' + E, (m) => {
+        const n = toNum(m[1]); if (n == null) return null;
+        const u = m[2];
+        if (u.startsWith('tag')) return addDays(today, n);
+        if (u.startsWith('woche')) return addDays(today, n * 7);
+        if (u.startsWith('monat')){ const d = new Date(today); d.setMonth(d.getMonth() + n); return d; }
+        const d = new Date(today); d.setFullYear(d.getFullYear() + n); return d;
+      }],
+      [B + '(?:am\\s+)?(\\d{1,2})\\.\\s?(\\d{1,2})\\.?(?:\\s?(\\d{4}|\\d{2})(?![\\d:.]|\\s*uhr))?' + E, (m) => {
+        const d = +m[1], mo = +m[2];
+        if (mo < 1 || mo > 12) return null;
+        return futureDate(d, mo, m[3] ? +m[3] : null, today);
+      }],
+      [B + '(?:am\\s+)?(\\d{1,2}\\.?|' + ORD_WORDS + ')\\s*(' + MONTH_WORDS + ')\\.?(?:\\s+(\\d{4}))?' + E, (m) => {
+        const d = toNum(m[1]); if (!d) return null;
+        return futureDate(d, MONTHS[m[2]], m[3] ? +m[3] : null, today);
+      }],
+      [B + '(?:(?:am|zum|bis zum)\\s+)?(?:ende\\s+des\\s+monats|monatsende)' + E, () => new Date(today.getFullYear(), today.getMonth() + 1, 0)],
+      [B + '(?:am\\s+)?(?:anfang\\s+des\\s+nächsten\\s+monats|nächsten\\s+monat|kommenden\\s+monat)' + E, () => new Date(today.getFullYear(), today.getMonth() + 1, 1)],
+      [B + '(?:am\\s+|übers\\s+|dieses\\s+|nächstes\\s+)?wochenende' + E, () => {
+        const dd = (6 - today.getDay() + 7) % 7; return addDays(today, dd === 0 && now.getHours() >= 18 ? 7 : dd);
+      }],
+      [B + '(?:ende\\s+der\\s+woche)' + E, () => addDays(today, (5 - today.getDay() + 7) % 7)],
+      [B + '(?:nächste|kommende)\\s+woche' + E, () => addDays(today, ((1 - today.getDay() + 7) % 7) || 7)],
+      [B + '(?:(nächsten|kommenden|diesen)\\s+|am\\s+)?(' + WEEKDAYS.join('|') + ')s?' + E, (m) => {
+        const target = WEEKDAYS.indexOf(m[2]);
+        let diff = (target - today.getDay() + 7) % 7;
+        if (diff === 0) diff = 7;
+        return addDays(today, diff);
+      }],
+      [B + 'am\\s+(\\d{1,2})\\.(?!\\s?\\d)', (m) => {
+        const d = +m[1];
+        let x = validDate(today.getFullYear(), today.getMonth() + 1, d);
+        if (!x || x < today){ const n = new Date(today.getFullYear(), today.getMonth() + 1, 1); x = validDate(n.getFullYear(), n.getMonth() + 1, d); }
+        return x;
+      }],
+      [B + 'am\\s+(' + ORD_WORDS + ')' + E, (m) => {
+        const d = ORD[m[1]];
+        let x = validDate(today.getFullYear(), today.getMonth() + 1, d);
+        if (!x || x < today){ const n = new Date(today.getFullYear(), today.getMonth() + 1, 1); x = validDate(n.getFullYear(), n.getMonth() + 1, d); }
+        return x;
+      }],
+    ];
+    if (!exactAt){
+      for (const [re, fn] of DATE_RULES){
+        const rx = R(re);
+        const peek = rx.exec(low);
+        if (!peek) continue;
+        const d = fn(peek);
+        if (d){ take(rx); date = startOfDay(d); break; }
+      }
+    }
+
+    /* ---- Erinnerungs-Absicht ---- */
+    const intentRe = R(B + '(?:bitte\\s+)?(?:erinnere?n?|erinner)\\s+(?:mich|uns)(?:\\s+bitte)?(?:\\s+(?:daran|dran))?' + E);
+    const hasIntentPhrase = intentRe.test(low) || /erinnerung|nicht vergessen|denk\w*\s+(?:bitte\s+)?(?:daran|dran)|termin|deadline|frist|wecker/i.test(low);
+    take(intentRe);
+    take(R(B + 'denke?\\s+(?:bitte\\s+)?(?:daran|dran)' + E));
+    take(R(B + 'nicht\\s+vergessen' + E));
+    take(R(B + '(?:eine\\s+)?erinnerung' + E));
+
+    /* ---- Erinnerungszeitpunkte bauen ---- */
+    const reminders = [];
+    const defaults = (defaultTimes && defaultTimes.length ? defaultTimes : ['10:00', '18:00']).map(t => t.split(':').map(Number));
+    const at = (d, h, mi) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, mi);
+
+    if (exactAt){
+      date = startOfDay(exactAt);
+      time = { h: exactAt.getHours(), m: exactAt.getMinutes() };
+      reminders.push(exactAt);
+    } else if (time){
+      if (!date){
+        date = today;
+        if (at(today, time.h, time.m) <= now) date = addDays(today, 1);
+      }
+      reminders.push(at(date, time.h, time.m));
+    } else if (date){
+      defaults.forEach(([h, mi]) => { const d = at(date, h, mi); if (d > now) reminders.push(d); });
+      if (!reminders.length){ // z. B. "heute" um 19 Uhr gesagt: in 30 Minuten erinnern
+        reminders.push(new Date(Math.ceil((now.getTime() + 30 * 60000) / 300000) * 300000));
+      }
+    } else if (hasIntentPhrase){
+      date = today;
+      defaults.forEach(([h, mi]) => { const d = at(today, h, mi); if (d > now) reminders.push(d); });
+      if (!reminders.length){
+        date = addDays(today, 1);
+        defaults.forEach(([h, mi]) => reminders.push(at(date, h, mi)));
+      }
+    }
+
+    /* ---- Titel aufräumen ---- */
+    let title = text.replace(/\s+/g, ' ').trim();
+    const LEAD = /^(?:[\s,.:;!\-–]+|(?:und|bitte|daran|dran|an|dass|zu|mal|noch|ich|soll|muss|sollte|von|bis|die|der|das|den|dem)(?=\s|$))+/i;
+    for (let i = 0; i < 4; i++) title = title.replace(LEAD, '').trim();
+    title = title.replace(/[\s,.:;!\-–]+$/, '').replace(/\s+zu\s+erinnern$/i, '').replace(/\s+([,.!?])/g, '$1').trim();
+    if (!title) title = orig;
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+
+    return { title, date, time, reminders, hasDate: !!date };
+  }
+
+  /* =====================================================================
+     Speicher
+     ===================================================================== */
+  const KEY_NOTES = 'denkzettel_notes_v2';
+  const KEY_SETTINGS = 'denkzettel_settings_v2';
+  const hasClaudeStorage = !!(window.storage && typeof window.storage.get === 'function');
+
+  async function storeGet(key){
+    try{
+      if (hasClaudeStorage){ const r = await window.storage.get(key, false); return r && r.value ? JSON.parse(r.value) : null; }
+      const v = localStorage.getItem(key); return v ? JSON.parse(v) : null;
+    }catch(e){ return null; }
+  }
+  async function storeSet(key, value){
+    try{
+      if (hasClaudeStorage) await window.storage.set(key, JSON.stringify(value), false);
+      else localStorage.setItem(key, JSON.stringify(value));
+    }catch(e){ console.error('Speichern fehlgeschlagen', e); }
+  }
+
+  let notes = [];
+  let settings = { defaultTimes: ['10:00', '18:00'] };
+  const saveNotes = () => { scheduleSync(); return storeSet(KEY_NOTES, notes); };
+  const saveSettings = () => storeSet(KEY_SETTINGS, settings);
+
+  /* =====================================================================
+     Formatierung
+     ===================================================================== */
+  const pad = (n) => String(n).padStart(2, '0');
+  const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const fromYmd = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const hm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes());
+  function dayLabel(d){
+    const t = startOfDay(new Date());
+    const diff = Math.round((startOfDay(d) - t) / 86400000);
+    if (diff === 0) return 'Heute';
+    if (diff === 1) return 'Morgen';
+    if (diff === 2) return 'Übermorgen';
+    if (diff === -1) return 'Gestern';
+    return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }) + (d.getFullYear() !== t.getFullYear() ? ' ' + d.getFullYear() : '');
+  }
+  function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function uid(p){ return p + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
+
+  /* =====================================================================
+     Elemente
+     ===================================================================== */
+  const $ = (id) => document.getElementById(id);
+  const input = $('noteInput'), fileBtn = $('fileBtn'), micBtn = $('micBtn'), micLbl = $('micLbl');
+  const statusLine = $('statusLine'), confirmCard = $('confirmCard');
+  const foldersArea = $('foldersArea'), shelfCount = $('shelfCount');
+  const upcomingArea = $('upcomingArea'), upMeta = $('upMeta');
+  const calEl = $('calendar'), dayPanel = $('dayPanel'), calMeta = $('calMeta');
+  const toastEl = $('toast');
+
+  let busy = false;
+  let openFolder = null;
+  let calMonth = startOfDay(new Date()); calMonth.setDate(1);
+  let selDay = ymd(new Date());
+  let lastSavedId = null;
+
+  function setStatus(text, isErr){
+    statusLine.classList.toggle('err', !!isErr);
+    statusLine.textContent = text || '';
+  }
+
+  /* =====================================================================
+     KI-Einsortierung (nur innerhalb von Claude verfügbar, sonst lokal)
+     ===================================================================== */
+  async function classify(text){
+    const local = localClassify(text);
+    if (!hasClaudeStorage) return local;
+    try{
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 6000);
+      const system = 'Du sortierst kurze deutsche Gedankennotizen. Bereiche: "Arbeit" (alles Berufliche) oder "Privat". ' +
+        'Ordner für Arbeit: ' + FOLDERS.Arbeit.join(', ') + '. Ordner für Privat: ' + FOLDERS.Privat.join(', ') + '. ' +
+        'Wähle den passendsten Ordner. Antworte NUR mit JSON: {"area":"...","folder":"..."}';
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 200, system, messages: [{ role: 'user', content: 'Notiz: "' + text + '"' }] }),
+      });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('API ' + res.status);
+      const data = await res.json();
+      const block = (data.content || []).find(b => b.type === 'text');
+      const parsed = JSON.parse(block.text.replace(/```json|```/g, '').trim());
+      if (AREAS.includes(parsed.area) && typeof parsed.folder === 'string' && parsed.folder.trim()){
+        return { area: parsed.area, folder: parsed.folder.trim() };
+      }
+      return local;
+    }catch(e){
+      return local;
+    }
+  }
+
+  /* =====================================================================
+     Ablegen
+     ===================================================================== */
+  async function handleFile(){
+    const raw = input.value.trim();
+    if (!raw || busy) return;
+    busy = true; fileBtn.disabled = true;
+    setStatus('Wird einsortiert …');
+    try{
+      const p = parseEntry(raw, new Date(), settings.defaultTimes);
+      const cls = await classify(raw);
+      const note = {
+        id: uid('n'), text: p.title, raw,
+        area: cls.area, folder: cls.folder,
+        ts: Date.now(),
+        due: p.date ? ymd(p.date) : null,
+        time: p.time ? pad(p.time.h) + ':' + pad(p.time.m) : null,
+        reminders: p.reminders.map(d => ({ id: uid('r'), at: d.getTime(), fired: false })),
+        done: false,
+      };
+      notes.push(note);
+      await saveNotes();
+      input.value = '';
+      lastSavedId = note.id;
+      openFolder = note.area + '/' + note.folder;
+      if (note.due){ selDay = note.due; const d = fromYmd(note.due); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
+      setStatus('');
+      showConfirm(note);
+      renderAll();
+      if (note.reminders.length) ensurePermission();
+    }catch(e){
+      console.error(e);
+      setStatus('Einsortieren hat nicht geklappt. Versuch es nochmal.', true);
+    }finally{
+      busy = false; fileBtn.disabled = false;
+    }
+  }
+
+  function remindersSummary(n){
+    if (!n.reminders.length) return '';
+    const byDay = {};
+    n.reminders.slice().sort((a, b) => a.at - b.at).forEach(r => {
+      const d = new Date(r.at); const k = dayLabel(d);
+      (byDay[k] = byDay[k] || []).push(hm(d));
+    });
+    return Object.entries(byDay).map(([d, ts]) => d + ' ' + ts.join(' & ')).join(' · ');
+  }
+
+  function showConfirm(n){
+    const color = folderColor(n.area, n.folder);
+    confirmCard.innerHTML = `
+      <div class="confirm-head">✓ Abgelegt in <span style="color:${color}">${escapeHtml(n.area)} › ${escapeHtml(n.folder)}</span></div>
+      <div class="confirm-title">${escapeHtml(n.text)}</div>
+      ${n.due ? `<div class="chips"><span class="chip date">📅 ${escapeHtml(dayLabel(fromYmd(n.due)))}${n.time ? ' · ' + n.time + ' Uhr' : ''}</span>${n.reminders.length ? `<span class="chip">🔔 ${escapeHtml(remindersSummary(n))}</span>` : ''}</div>` : '<div class="chips"><span class="chip">Ohne Termin: nur im Ordner abgelegt</span></div>'}
+      <div class="confirm-actions">
+        ${n.due ? '<button class="small-btn primary" data-act="ics">In Handy-Kalender</button>' : '<button class="small-btn" data-act="addrem">Doch erinnern …</button>'}
+        <button class="small-btn" data-act="undo">Rückgängig</button>
+        <button class="small-btn" data-act="close">OK</button>
+      </div>`;
+    confirmCard.hidden = false;
+    confirmCard.querySelector('[data-act=undo]').onclick = () => {
+      notes = notes.filter(x => x.id !== n.id); saveNotes(); confirmCard.hidden = true; renderAll();
+      setStatus('Rückgängig gemacht.'); setTimeout(() => setStatus(''), 1800);
+    };
+    confirmCard.querySelector('[data-act=close]').onclick = () => { confirmCard.hidden = true; };
+    const ics = confirmCard.querySelector('[data-act=ics]');
+    if (ics) ics.onclick = () => downloadIcs([n], 'denkzettel-' + slug(n.text) + '.ics');
+    const addrem = confirmCard.querySelector('[data-act=addrem]');
+    if (addrem) addrem.onclick = () => {
+      confirmCard.hidden = true;
+      openFolder = n.area + '/' + n.folder; renderFolders();
+      const row = document.querySelector('#foldersArea [data-note="' + n.id + '"]');
+      if (row){ row.querySelector('.add-rem').hidden = false; row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.querySelector('.add-rem input').focus(); }
+    };
+  }
+
+  function slug(s){ return s.toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'eintrag'; }
+
+  /* =====================================================================
+     Darstellung: Eintrag
+     ===================================================================== */
+  function allFolders(){
+    const res = { Arbeit: FOLDERS.Arbeit.slice(), Privat: FOLDERS.Privat.slice() };
+    notes.forEach(n => { if (res[n.area] && !res[n.area].includes(n.folder)) res[n.area].push(n.folder); });
+    return res;
+  }
+
+  function noteEl(n, opts){
+    opts = opts || {};
+    const el = document.createElement('div');
+    el.className = 'note-item' + (n.done ? ' done' : '');
+    el.dataset.note = n.id;
+    const now = Date.now();
+    const folders = allFolders();
+    const options = AREAS.map(a => `<optgroup label="${a}">${folders[a].map(f => `<option value="${escapeHtml(a + '/' + f)}"${a === n.area && f === n.folder ? ' selected' : ''}>${escapeHtml(f)}</option>`).join('')}</optgroup>`).join('');
+    const rems = n.reminders.slice().sort((a, b) => a.at - b.at).map(r => {
+      const d = new Date(r.at);
+      const past = r.fired || r.at < now;
+      return `<span class="chip${past ? ' fired' : ''}">🔔 ${escapeHtml(dayLabel(d))} ${hm(d)}<button data-rem="${r.id}" aria-label="Erinnerung löschen">✕</button></span>`;
+    }).join('');
+    el.innerHTML = `
+      <button class="chk" aria-label="${n.done ? 'Als offen markieren' : 'Erledigt'}">✓</button>
+      <div class="note-body">
+        <div class="note-text">${escapeHtml(n.text)}</div>
+        <div class="note-meta">${opts.showFolder ? escapeHtml(n.area + ' › ' + n.folder) + ' · ' : ''}notiert ${new Date(n.ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} ${hm(new Date(n.ts))}</div>
+        <div class="chips">
+          ${n.due ? `<span class="chip date">📅 ${escapeHtml(dayLabel(fromYmd(n.due)))}${n.time ? ' · ' + n.time : ''}</span>` : ''}
+          ${rems}
+          <span class="chip add" role="button" tabindex="0" data-act="addrem">＋ Erinnerung</span>
+        </div>
+        <div class="add-rem" hidden>
+          <input type="datetime-local" aria-label="Neue Erinnerung">
+          <button class="small-btn primary" data-act="saverem">Speichern</button>
+        </div>
+        <div class="note-tools">
+          <select aria-label="Ordner ändern">${options}</select>
+          ${n.due ? '<button class="tool-btn" data-act="ics" title="In den Handy-Kalender übernehmen">📅 In Kalender</button>' : ''}
+          <button class="tool-btn del" data-act="del" aria-label="Löschen">Löschen</button>
+        </div>
+      </div>`;
+
+    el.querySelector('.chk').onclick = () => { n.done = !n.done; saveNotes(); renderAll(); };
+    el.querySelector('select').onchange = (e) => {
+      const [a, ...rest] = e.target.value.split('/');
+      n.area = a; n.folder = rest.join('/'); openFolder = n.area + '/' + n.folder;
+      saveNotes(); renderAll();
+    };
+    el.querySelectorAll('[data-rem]').forEach(b => b.onclick = () => {
+      n.reminders = n.reminders.filter(r => r.id !== b.dataset.rem); saveNotes(); renderAll();
+    });
+    const addBox = el.querySelector('.add-rem');
+    const addInput = addBox.querySelector('input');
+    const toggleAdd = () => {
+      addBox.hidden = !addBox.hidden;
+      if (!addBox.hidden){
+        const base = n.due ? fromYmd(n.due) : startOfDay(new Date());
+        const [h, mi] = settings.defaultTimes[0].split(':');
+        addInput.value = ymd(base) + 'T' + pad(h) + ':' + pad(mi);
+      }
+    };
+    const addChip = el.querySelector('[data-act=addrem]');
+    addChip.onclick = toggleAdd;
+    addChip.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleAdd(); } };
+    addBox.querySelector('[data-act=saverem]').onclick = () => {
+      if (!addInput.value) return;
+      const d = new Date(addInput.value);
+      if (isNaN(d)) return;
+      n.reminders.push({ id: uid('r'), at: d.getTime(), fired: d.getTime() <= Date.now() });
+      if (!n.due){ n.due = ymd(d); }
+      saveNotes(); renderAll(); ensurePermission();
+    };
+    const icsBtn = el.querySelector('[data-act=ics]');
+    if (icsBtn) icsBtn.onclick = () => downloadIcs([n], 'denkzettel-' + slug(n.text) + '.ics');
+    el.querySelector('[data-act=del]').onclick = () => {
+      notes = notes.filter(x => x.id !== n.id); saveNotes(); renderAll();
+      showToast('Gelöscht', escapeHtml(n.text), 'Rückgängig', () => { notes.push(n); saveNotes(); renderAll(); });
+    };
+    return el;
+  }
+
+  /* =====================================================================
+     Darstellung: Als Nächstes
+     ===================================================================== */
+  function renderUpcoming(){
+    const now = Date.now();
+    const items = [];
+    notes.forEach(n => { if (!n.done) n.reminders.forEach(r => { if (r.at > now) items.push({ n, r }); }); });
+    items.sort((a, b) => a.r.at - b.r.at);
+    // Erinnerungen desselben Eintrags am selben Tag zusammenfassen (10:00 & 18:00)
+    const grouped = [];
+    const seen = {};
+    items.forEach(({ n, r }) => {
+      const k = n.id + '|' + ymd(new Date(r.at));
+      if (seen[k]) seen[k].times.push(hm(new Date(r.at)));
+      else { seen[k] = { n, r, times: [hm(new Date(r.at))] }; grouped.push(seen[k]); }
+    });
+    upMeta.textContent = items.length ? items.length + (items.length === 1 ? ' Erinnerung' : ' Erinnerungen') : '';
+    if (!items.length){
+      upcomingArea.innerHTML = '<div class="empty-state"><strong>Nichts geplant.</strong>Sag z. B. „Erinner mich morgen an den Zahnarzt“. Ich erinnere dich dann um ' + settings.defaultTimes.join(' und ') + ' Uhr.</div>';
+      return;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'upcoming';
+    grouped.slice(0, 6).forEach(({ n, r, times }) => {
+      const d = new Date(r.at);
+      const row = document.createElement('div');
+      row.className = 'up-item';
+      row.innerHTML = `
+        <div class="up-when">${escapeHtml(dayLabel(d))}<small>${times.join(' & ')} Uhr</small></div>
+        <div class="up-text">${escapeHtml(n.text)}<small><span style="color:${folderColor(n.area, n.folder)}">■</span> ${escapeHtml(n.area + ' › ' + n.folder)}</small></div>`;
+      row.style.cursor = 'pointer';
+      row.onclick = () => { selDay = ymd(d); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); renderCalendar(); dayPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      wrap.appendChild(row);
+    });
+    upcomingArea.innerHTML = '';
+    upcomingArea.appendChild(wrap);
+  }
+
+  /* =====================================================================
+     Darstellung: Kalender
+     ===================================================================== */
+  function notesOnDay(key){
+    return notes.filter(n => n.due === key || n.reminders.some(r => ymd(new Date(r.at)) === key));
+  }
+
+  function renderCalendar(){
+    const y = calMonth.getFullYear(), mo = calMonth.getMonth();
+    const todayKey = ymd(new Date());
+    const first = new Date(y, mo, 1);
+    const offset = (first.getDay() + 6) % 7; // Montag zuerst
+    const start = addDays(first, -offset);
+    const monthName = first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+    const byDay = {};
+    notes.forEach(n => {
+      const keys = new Set();
+      if (n.due) keys.add(n.due);
+      n.reminders.forEach(r => keys.add(ymd(new Date(r.at))));
+      keys.forEach(k => { (byDay[k] = byDay[k] || []).push(n); });
+    });
+    const inMonth = Object.keys(byDay).filter(k => k.startsWith(y + '-' + pad(mo + 1))).reduce((s, k) => s + byDay[k].length, 0);
+    calMeta.textContent = inMonth ? inMonth + ' in diesem Monat' : '';
+
+    let html = `<div class="cal-top">
+      <div class="cal-title">${escapeHtml(monthName)}</div>
+      <div class="cal-nav">
+        <button data-nav="-1" aria-label="Vorheriger Monat">‹</button>
+        <button data-nav="0">Heute</button>
+        <button data-nav="1" aria-label="Nächster Monat">›</button>
+      </div></div><div class="cal-grid">`;
+    ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].forEach(d => { html += `<div class="cal-dow">${d}</div>`; });
+    for (let i = 0; i < 42; i++){
+      const d = addDays(start, i);
+      const k = ymd(d);
+      if (i >= 35 && d.getMonth() !== mo) break;
+      const list = (byDay[k] || []).filter(n => !n.done);
+      const dots = list.slice(0, 3).map(n => `<span class="dot" style="background:${folderColor(n.area, n.folder)}"></span>`).join('');
+      const cls = ['cal-day', d.getMonth() !== mo ? 'other' : '', k === todayKey ? 'today' : '', k === selDay ? 'sel' : ''].join(' ');
+      html += `<button class="${cls}" data-day="${k}" aria-label="${d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}${list.length ? ', ' + list.length + ' Einträge' : ''}">${d.getDate()}<span class="dots">${dots}</span></button>`;
+    }
+    html += '</div>';
+    calEl.innerHTML = html;
+    calEl.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => {
+      const v = +b.dataset.nav;
+      if (v === 0){ calMonth = startOfDay(new Date()); calMonth.setDate(1); selDay = todayKey; }
+      else calMonth = new Date(y, mo + v, 1);
+      renderCalendar();
+    });
+    calEl.querySelectorAll('[data-day]').forEach(b => b.onclick = () => {
+      selDay = b.dataset.day;
+      const d = fromYmd(selDay);
+      if (d.getMonth() !== mo) calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderCalendar();
+    });
+    renderDayPanel();
+  }
+
+  function renderDayPanel(){
+    const d = fromYmd(selDay);
+    const list = notesOnDay(selDay).sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
+    const label = d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    dayPanel.innerHTML = `<h3>${escapeHtml(label)}</h3>`;
+    if (!list.length){
+      dayPanel.insertAdjacentHTML('beforeend', '<div class="empty-state" style="padding:16px">An diesem Tag steht nichts an.</div>');
+      return;
+    }
+    list.forEach(n => dayPanel.appendChild(noteEl(n, { showFolder: true })));
+  }
+
+  /* =====================================================================
+     Darstellung: Ordner
+     ===================================================================== */
+  function renderFolders(){
+    const total = notes.length;
+    const open = notes.filter(n => !n.done).length;
+    shelfCount.textContent = total ? open + ' offen · ' + total + ' gesamt' : '';
+    if (!total){
+      foldersArea.innerHTML = '<div class="empty-state"><strong>Noch leer hier.</strong>Drück auf „Diktieren“ und erzähl mir, was dir durch den Kopf geht. Ich sortiere es nach Arbeit, Haus, Familie und mehr.</div>';
+      return;
+    }
+    foldersArea.innerHTML = '';
+    AREAS.forEach(area => {
+      const inArea = notes.filter(n => n.area === area);
+      if (!inArea.length) return;
+      const sec = document.createElement('div');
+      sec.className = 'area';
+      sec.innerHTML = `<div class="area-title">${area} <span class="cnt">${inArea.filter(n => !n.done).length} offen</span></div>`;
+      const list = document.createElement('div');
+      list.className = 'folders';
+      const groups = {};
+      inArea.forEach(n => { (groups[n.folder] = groups[n.folder] || []).push(n); });
+      const order = allFolders()[area];
+      Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(folder => {
+        const key = area + '/' + folder;
+        const items = groups[folder].slice().sort((a, b) => (a.done - b.done) || (b.ts - a.ts));
+        const f = document.createElement('div');
+        f.className = 'folder' + (openFolder === key ? ' open' : '');
+        const tab = document.createElement('button');
+        tab.className = 'folder-tab';
+        tab.setAttribute('aria-expanded', openFolder === key ? 'true' : 'false');
+        tab.innerHTML = `
+          <span class="folder-swatch" style="background:${folderColor(area, folder)}"></span>
+          <span class="folder-name">${escapeHtml(folder)}</span>
+          <span class="folder-count">${items.filter(n => !n.done).length}${items.some(n => n.done) ? ' / ' + items.length : ''}</span>
+          <svg class="folder-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>`;
+        tab.onclick = () => { openFolder = openFolder === key ? null : key; renderFolders(); };
+        const wrap = document.createElement('div');
+        wrap.className = 'folder-notes';
+        items.forEach(n => wrap.appendChild(noteEl(n)));
+        f.appendChild(tab); f.appendChild(wrap);
+        list.appendChild(f);
+      });
+      sec.appendChild(list);
+      foldersArea.appendChild(sec);
+    });
+  }
+
+  function renderAll(){ renderUpcoming(); renderCalendar(); renderFolders(); }
+
+  /* =====================================================================
+     Benachrichtigungen & Push
+     ===================================================================== */
+  const notifSupported = 'Notification' in window;
+  const pushSupported = notifSupported && 'serviceWorker' in navigator && 'PushManager' in window;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  const KEY_DEVICE = 'denkzettel_device_v1';
+  let swReg = null;
+
+  // Push-Zustand: server = null (unbekannt) | true | false
+  const PUSH = { device: null, subscription: null, enabled: false, server: null, lastSync: null, lastError: null };
+
+  async function registerSW(){
+    if (!('serviceWorker' in navigator) || location.protocol === 'file:') return null;
+    try{ swReg = await navigator.serviceWorker.register('sw.js'); }catch(e){ swReg = null; }
+    return swReg;
+  }
+
+  function randomHex(bytes){
+    const a = new Uint8Array(bytes); crypto.getRandomValues(a);
+    return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function loadDevice(){
+    let d = await storeGet(KEY_DEVICE);
+    if (!d || !d.id || !d.token){ d = { id: 'd_' + randomHex(12), token: randomHex(32) }; await storeSet(KEY_DEVICE, d); }
+    PUSH.device = d;
+  }
+  function b64ToBytes(b64){
+    const pad = '='.repeat((4 - b64.length % 4) % 4);
+    const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(raw, c => c.charCodeAt(0));
+  }
+  async function fetchVapidKey(){
+    if (location.protocol === 'file:') { PUSH.server = false; return null; }
+    try{
+      const r = await fetch('/api/vapid', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (!j.publicKey) throw new Error('kein Schlüssel');
+      PUSH.server = true;
+      return j.publicKey;
+    }catch(e){ PUSH.server = false; return null; }
+  }
+
+  // Muss direkt aus einem Fingertipp heraus aufgerufen werden (iPhone-Regel).
+  async function enablePush(){
+    if (!notifSupported) { updateBanner(); return false; }
+    if (Notification.permission === 'default'){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+    if (Notification.permission !== 'granted'){ updateBanner(); return false; }
+    if (!pushSupported){ updateBanner(); return false; }
+    const key = await fetchVapidKey();
+    if (!key){ updateBanner(); return false; }
+    try{
+      const reg = swReg || await registerSW();
+      if (!reg) throw new Error('Service Worker nicht verfügbar');
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+      PUSH.subscription = sub.toJSON();
+      PUSH.enabled = true;
+      await syncNow();
+    }catch(e){
+      PUSH.lastError = e && e.message || String(e);
+      console.warn('Push-Abo fehlgeschlagen', e);
+    }
+    updateBanner();
+    return PUSH.enabled;
+  }
+
+  // Beim Start: bestehendes Abo wiederverwenden (ohne Nachfrage)
+  async function restorePush(){
+    if (!pushSupported || Notification.permission !== 'granted') return;
+    try{
+      const reg = swReg;
+      if (!reg) return;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub){
+        const key = await fetchVapidKey();
+        if (!key) return;
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+      } else {
+        PUSH.server = true;
+      }
+      PUSH.subscription = sub.toJSON();
+      PUSH.enabled = true;
+      await syncNow();
+    }catch(e){ PUSH.lastError = e && e.message || String(e); }
+  }
+
+  let syncTimer = null;
+  function scheduleSync(){
+    if (!PUSH.enabled) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncNow, 700);
+  }
+  async function syncNow(){
+    if (!PUSH.enabled || !PUSH.subscription || !PUSH.device) return false;
+    const now = Date.now();
+    const reminders = [];
+    notes.forEach(n => {
+      if (n.done) return;
+      n.reminders.forEach(r => {
+        if (r.at > now - 60000) reminders.push({ id: r.id, at: r.at, title: n.text, body: n.area + ' › ' + n.folder + (n.time ? ' · ' + n.time + ' Uhr' : '') });
+      });
+    });
+    try{
+      const res = await fetch('/api/sync', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId: PUSH.device.id, token: PUSH.device.token, subscription: PUSH.subscription, reminders }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      PUSH.lastSync = Date.now(); PUSH.lastError = null; PUSH.server = true;
+      updatePushStatus();
+      return true;
+    }catch(e){
+      PUSH.lastError = 'Server nicht erreichbar';
+      updatePushStatus();
+      return false;
+    }
+  }
+
+  function updatePushStatus(){
+    const el = $('pushStatus'); if (!el) return;
+    if (PUSH.enabled && PUSH.lastSync && !PUSH.lastError) el.textContent = '✓ Aktiv, synchronisiert ' + hm(new Date(PUSH.lastSync));
+    else if (PUSH.enabled) el.textContent = '⚠ Aktiv, aber ' + (PUSH.lastError || 'noch nicht synchronisiert');
+    else if (isIOS && !isStandalone) el.textContent = 'Erst zum Home-Bildschirm hinzufügen';
+    else if (PUSH.server === false) el.textContent = 'Server nicht erreichbar';
+    else if (notifSupported && Notification.permission === 'denied') el.textContent = 'Blockiert';
+    else el.textContent = 'Nicht aktiviert';
+  }
+
+  function updateBanner(){
+    const b = $('notifBanner'), t = $('notifBannerText'), btn = $('notifAllowBtn');
+    updatePushStatus();
+    const show = (text, label) => { b.hidden = false; t.textContent = text; btn.hidden = !label; if (label) btn.textContent = label; };
+
+    if (PUSH.enabled){ b.hidden = true; return; }
+    if (isIOS && !isStandalone){
+      return show('Für Push-Erinnerungen auf dem iPhone: In Safari unten auf „Teilen“ tippen, dann „Zum Home-Bildschirm“. Danach Denkzettel über das neue Symbol öffnen.');
+    }
+    if (!notifSupported){
+      return show('Dieses Gerät kann hier keine Benachrichtigungen anzeigen. Tipp: Einträge mit „In Kalender“ ins Handy übernehmen.');
+    }
+    if (Notification.permission === 'denied'){
+      return show(isIOS
+        ? 'Mitteilungen sind blockiert. Erlaube sie unter Einstellungen › Mitteilungen › Denkzettel.'
+        : 'Benachrichtigungen sind blockiert. Erlaube sie in den Browser-Einstellungen für diese Seite.');
+    }
+    if (PUSH.server === false && Notification.permission === 'granted'){
+      return show('Der Push-Server ist nicht erreichbar. Ich erinnere dich, solange Denkzettel geöffnet ist.', 'Erneut versuchen');
+    }
+    return show('Push-Erinnerungen einschalten, damit ich dich pünktlich erinnere, auch wenn die App geschlossen ist.', 'Einschalten');
+  }
+
+  async function ensurePermission(){
+    if (PUSH.enabled || !notifSupported || Notification.permission !== 'default') return;
+    if (isIOS && !isStandalone) return;
+    await enablePush();
+  }
+
+  async function notify(title, body, tag){
+    let shown = false;
+    if (notifSupported && Notification.permission === 'granted'){
+      try{
+        const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration());
+        if (reg){ await reg.showNotification(title, { body, tag, renotify: true, requireInteraction: true }); shown = true; }
+      }catch(e){}
+      if (!shown){
+        try{ new Notification(title, { body, tag }); shown = true; }catch(e){}
+      }
+    }
+    beep();
+    if (navigator.vibrate) try{ navigator.vibrate([200, 100, 200]); }catch(e){}
+    return shown;
+  }
+
+  function beep(){
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      [0, 0.22].forEach(t0 => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = 880;
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + t0);
+        g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t0 + 0.18);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime + t0); o.stop(ctx.currentTime + t0 + 0.2);
+      });
+      setTimeout(() => ctx.close(), 800);
+    }catch(e){}
+  }
+
+  let toastTimer = null;
+  function showToast(title, bodyHtml, actionLabel, action){
+    toastEl.innerHTML = `<div><b>${escapeHtml(title)}</b>${bodyHtml}</div>${actionLabel ? `<button>${escapeHtml(actionLabel)}</button>` : '<button>OK</button>'}`;
+    toastEl.hidden = false;
+    toastEl.querySelector('button').onclick = () => { toastEl.hidden = true; if (action) action(); };
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toastEl.hidden = true; }, actionLabel ? 6000 : 15000);
+  }
+
+  function checkReminders(initial){
+    const now = Date.now();
+    const due = [];
+    notes.forEach(n => n.reminders.forEach(r => { if (!r.fired && r.at <= now) due.push({ n, r }); }));
+    if (!due.length) return;
+    due.forEach(x => { x.r.fired = true; });
+    saveNotes();
+    const open = due.filter(x => !x.n.done);
+    if (!open.length){ renderAll(); return; }
+
+    const missed = open.filter(x => now - x.r.at > 10 * 60000);
+    const fresh = open.filter(x => now - x.r.at <= 10 * 60000);
+    if (PUSH.enabled){
+      // Der Server hat die Push-Nachricht bereits geschickt; hier nur Ton/Vibration.
+      if (fresh.length && !document.hidden){ beep(); if (navigator.vibrate) try{ navigator.vibrate([200, 100, 200]); }catch(e){} }
+    } else fresh.forEach(({ n, r }) => notify('🔔 ' + n.text, n.area + ' › ' + n.folder + (n.time ? ' · ' + n.time + ' Uhr' : ''), r.id));
+    if (missed.length && !PUSH.enabled){
+      const titles = [...new Set(missed.map(x => x.n.text))];
+      notify('Verpasste Erinnerungen (' + titles.length + ')', titles.slice(0, 4).join(' · '), 'missed');
+    }
+    const titles = [...new Set(open.map(x => x.n.text))];
+    showToast(missed.length && initial ? 'Während du weg warst' : 'Erinnerung', titles.map(t => '• ' + escapeHtml(t)).join('<br>'));
+    renderAll();
+  }
+
+  /* =====================================================================
+     Kalender-Export (.ics) — Alarme landen im Handy-Kalender
+     ===================================================================== */
+  function icsEscape(s){ return String(s).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1'); }
+  function icsLocal(d){ return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00'; }
+  function icsUtc(d){ return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds()) + 'Z'; }
+  function icsDuration(ms){
+    const neg = ms < 0; let s = Math.round(Math.abs(ms) / 1000);
+    const d = Math.floor(s / 86400); s -= d * 86400;
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60);
+    let out = (neg ? '-' : '') + 'P' + (d ? d + 'D' : '');
+    if (h || m || !d) out += 'T' + (h ? h + 'H' : '') + (m || (!h && !d) ? m + 'M' : '');
+    return out;
+  }
+  function foldLine(line){
+    const out = []; let cur = line;
+    while (cur.length > 74){ out.push(cur.slice(0, 74)); cur = ' ' + cur.slice(74); }
+    out.push(cur); return out.join('\r\n');
+  }
+  function buildIcs(list){
+    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Denkzettel//DE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+    list.filter(n => n.due).forEach(n => {
+      const day = fromYmd(n.due);
+      let start, startLine, endLine;
+      if (n.time){
+        const [h, mi] = n.time.split(':').map(Number);
+        start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, mi);
+        startLine = 'DTSTART:' + icsLocal(start);
+        endLine = 'DTEND:' + icsLocal(new Date(start.getTime() + 30 * 60000));
+      } else {
+        start = day;
+        const next = addDays(day, 1);
+        startLine = 'DTSTART;VALUE=DATE:' + ymd(day).replace(/-/g, '');
+        endLine = 'DTEND;VALUE=DATE:' + ymd(next).replace(/-/g, '');
+      }
+      lines.push('BEGIN:VEVENT', 'UID:' + n.id + '@denkzettel', 'DTSTAMP:' + icsUtc(new Date()), startLine, endLine,
+        'SUMMARY:' + icsEscape(n.text), 'DESCRIPTION:' + icsEscape(n.area + ' › ' + n.folder + (n.raw && n.raw !== n.text ? '\nDiktiert: ' + n.raw : '')),
+        'CATEGORIES:' + icsEscape(n.area) + ',' + icsEscape(n.folder));
+      const rems = n.reminders.filter(r => r.at > Date.now());
+      rems.forEach(r => {
+        lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEscape(n.text), 'TRIGGER:' + icsDuration(r.at - start.getTime()), 'END:VALARM');
+      });
+      lines.push('END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return lines.map(foldLine).join('\r\n');
+  }
+  function downloadIcs(list, name){
+    const withDate = list.filter(n => n.due);
+    if (!withDate.length){ showToast('Nichts zu exportieren', 'Es gibt noch keine Einträge mit Datum.'); return; }
+    const blob = new Blob([buildIcs(withDate)], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  /* =====================================================================
+     Diktieren
+     ===================================================================== */
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recog = null, listening = false, finalText = '', baseText = '';
+  let keyboardMode = false;
+
+  // Fallback (z. B. iPhone-App vom Home-Bildschirm): Textfeld öffnen,
+  // dann über das Mikrofon der Tastatur diktieren.
+  function useKeyboardDictation(){
+    keyboardMode = true;
+    ensurePermission();
+    confirmCard.hidden = true;
+    input.focus();
+    $('micHelp').innerHTML = 'Tippe auf der Tastatur auf das <b>Mikrofon 🎤</b> und sprich. Danach auf <b>„Ablegen“</b> tippen.';
+    setStatus('Tastatur-Mikrofon benutzen …');
+  }
+
+  if (SpeechRecognition){
+    recog = new SpeechRecognition();
+    recog.lang = 'de-DE';
+    recog.interimResults = true;
+    recog.continuous = false;
+    recog.maxAlternatives = 1;
+
+    recog.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++){
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      input.value = (baseText ? baseText + ' ' : '') + (finalText + interim).trim();
+    };
+    recog.onend = () => {
+      const wasListening = listening;
+      listening = false;
+      micBtn.classList.remove('listening'); micLbl.textContent = 'Diktieren';
+      setStatus('');
+      if (wasListening && finalText.trim()) handleFile();
+    };
+    recog.onerror = (e) => {
+      listening = false;
+      micBtn.classList.remove('listening'); micLbl.textContent = 'Diktieren';
+      if (e.error === 'service-not-allowed' || (e.error === 'not-allowed' && isIOS && isStandalone)){
+        useKeyboardDictation(); return;
+      }
+      const msg = e.error === 'not-allowed'
+        ? 'Mikrofon ist blockiert. Erlaube es in den Einstellungen.'
+        : e.error === 'no-speech' ? 'Ich habe nichts gehört. Nochmal tippen und sprechen.'
+        : 'Diktat hat nicht geklappt. Du kannst auch tippen.';
+      setStatus(msg, true);
+      setTimeout(() => setStatus(''), 3500);
+    };
+
+    micBtn.addEventListener('click', () => {
+      if (keyboardMode){ useKeyboardDictation(); return; }
+      if (listening){ recog.stop(); return; }
+      ensurePermission();
+      finalText = ''; baseText = input.value.trim();
+      try{
+        recog.start();
+        listening = true;
+        micBtn.classList.add('listening'); micLbl.textContent = 'Ich höre';
+        confirmCard.hidden = true;
+        setStatus('Sprich einfach. Ich lege automatisch ab, sobald du fertig bist.');
+      }catch(e){}
+    });
+  } else {
+    keyboardMode = true;
+    micBtn.addEventListener('click', useKeyboardDictation);
+  }
+
+  /* =====================================================================
+     Einstellungen
+     ===================================================================== */
+  const dlg = $('settingsDlg');
+  $('settingsBtn').onclick = () => {
+    $('t1').value = settings.defaultTimes[0]; $('t2').value = settings.defaultTimes[1] || '';
+    updatePushStatus(); dlg.showModal();
+  };
+  $('settingsClose').onclick = () => {
+    const t = [$('t1').value, $('t2').value].filter(Boolean).sort();
+    if (t.length) settings.defaultTimes = t;
+    saveSettings(); dlg.close(); renderAll();
+  };
+  $('exportAllBtn').onclick = () => downloadIcs(notes.filter(n => !n.done), 'denkzettel-alle.ics');
+  $('testNotifBtn').onclick = async () => {
+    if (!PUSH.enabled) await enablePush();
+    if (PUSH.enabled){
+      try{
+        const r = await fetch('/api/test-push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: PUSH.device.id, token: PUSH.device.token }) });
+        if (r.ok){ showToast('Test-Push verschickt', 'Die Nachricht sollte in wenigen Sekunden ankommen. Schließ die App ruhig zum Ausprobieren.'); return; }
+      }catch(e){}
+      showToast('Test fehlgeschlagen', 'Der Server konnte die Push-Nachricht nicht verschicken.');
+      return;
+    }
+    const ok = await notify('🔔 Denkzettel', 'So sehen deine Erinnerungen aus.', 'test');
+    if (!ok) showToast('Kein Push möglich', isIOS && !isStandalone ? 'Füge Denkzettel zuerst zum Home-Bildschirm hinzu und öffne die App von dort.' : 'Benachrichtigungen sind nicht erlaubt oder der Server ist nicht erreichbar.');
+  };
+  $('notifAllowBtn').onclick = enablePush;
+
+  /* =====================================================================
+     Start
+     ===================================================================== */
+  fileBtn.addEventListener('click', handleFile);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); handleFile(); }
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden){ checkReminders(false); renderAll(); } });
+
+  // Für Tests
+  window.__denkzettel = { parseEntry, localClassify };
+
+  (async function init(){
+    const s = await storeGet(KEY_SETTINGS);
+    if (s && Array.isArray(s.defaultTimes) && s.defaultTimes.length) settings = s;
+    notes = (await storeGet(KEY_NOTES)) || [];
+    // Daten aus der alten Version übernehmen
+    if (!notes.length){
+      const old = await storeGet('notes');
+      if (Array.isArray(old) && old.length){
+        notes = old.map(o => Object.assign({ id: o.id || uid('n'), text: o.text, raw: o.text, ts: o.ts || Date.now(), due: null, time: null, reminders: [], done: false }, localClassify(o.text)));
+        saveNotes();
+      }
+    }
+    await loadDevice();
+    renderAll();
+    await registerSW();
+    await restorePush();
+    updateBanner();
+    checkReminders(true);
+    if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'push-shown') checkReminders(false);
+    });
+    setInterval(() => checkReminders(false), 15000);
+  })();
+})();
+</script>
+</body>
+</html>

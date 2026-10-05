@@ -1,0 +1,12 @@
+{
+  "name": "denkzettel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gedanken diktieren, einsortieren, per Push erinnert werden.",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.3",
+    "web-push": "^3.6.7"
+  }
+}
