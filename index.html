@@ -12,8 +12,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
   :root{
     --bg: #14171c;
@@ -357,7 +356,7 @@
     <div id="foldersArea"></div>
   </section>
 
-  <footer class="note" id="footNote">Deine Notizen bleiben auf diesem Gerät. Für Push-Erinnerungen werden nur Titel und Zeitpunkt an den Server übertragen.</footer>
+  <footer class="note" id="footNote">Deine Notizen bleiben auf diesem Gerät. Für Push-Erinnerungen werden Notiztext, Ordner und Zeitpunkt anstehender Erinnerungen an den Server übertragen und spätestens 2 Tage danach gelöscht.</footer>
 </div>
 
 <dialog id="settingsDlg">
@@ -764,34 +763,10 @@
   }
 
   /* =====================================================================
-     KI-Einsortierung (nur innerhalb von Claude verfügbar, sonst lokal)
+     Einsortierung (läuft nur lokal auf dem Gerät)
      ===================================================================== */
   async function classify(text){
-    const local = localClassify(text);
-    if (!hasClaudeStorage) return local;
-    try{
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 6000);
-      const system = 'Du sortierst kurze deutsche Gedankennotizen. Bereiche: "Arbeit" (alles Berufliche) oder "Privat". ' +
-        'Ordner für Arbeit: ' + FOLDERS.Arbeit.join(', ') + '. Ordner für Privat: ' + FOLDERS.Privat.join(', ') + '. ' +
-        'Wähle den passendsten Ordner. Antworte NUR mit JSON: {"area":"...","folder":"..."}';
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', signal: ctrl.signal,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 200, system, messages: [{ role: 'user', content: 'Notiz: "' + text + '"' }] }),
-      });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error('API ' + res.status);
-      const data = await res.json();
-      const block = (data.content || []).find(b => b.type === 'text');
-      const parsed = JSON.parse(block.text.replace(/```json|```/g, '').trim());
-      if (AREAS.includes(parsed.area) && typeof parsed.folder === 'string' && parsed.folder.trim()){
-        return { area: parsed.area, folder: parsed.folder.trim() };
-      }
-      return local;
-    }catch(e){
-      return local;
-    }
+    return localClassify(text);
   }
 
   /* =====================================================================

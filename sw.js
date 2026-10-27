@@ -2,8 +2,8 @@
 // - empfängt Push-Nachrichten vom Server und zeigt sie an
 // - hält die App offline verfügbar
 
-const CACHE = 'denkzettel-v3';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './badge-96.png'];
+const CACHE = 'denkzettel-v4';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './badge-96.png', './fonts/fonts.css'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}).then(() => self.skipWaiting()));
