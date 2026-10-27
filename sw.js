@@ -2,8 +2,8 @@
 // - empfängt Push-Nachrichten vom Server und zeigt sie an
 // - hält die App offline verfügbar
 
-const CACHE = 'denkzettel-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
+const CACHE = 'denkzettel-v3';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './badge-96.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}).then(() => self.skipWaiting()));
@@ -38,11 +38,16 @@ self.addEventListener('push', (e) => {
   let data = {};
   try { data = e.data ? e.data.json() : {}; } catch (_) { data = { body: e.data && e.data.text() }; }
   e.waitUntil((async () => {
+    // Android: badge muss einfarbig/transparent sein (sonst weißes Quadrat in der Statusleiste),
+    // renotify sorgt bei gleichem tag erneut für Ton/Vibration.
     await self.registration.showNotification(data.title || 'Denkzettel', {
       body: data.body || '',
       tag: data.tag || undefined,
+      renotify: !!data.tag,
       icon: './icon-192.png',
-      badge: './icon-192.png',
+      badge: './badge-96.png',
+      vibrate: [200, 100, 200],
+      timestamp: Date.now(),
       data: { url: './', reminderId: data.tag || null },
     });
     // Offene App informieren, damit sie die Erinnerung als erledigt markiert
@@ -53,7 +58,7 @@ self.addEventListener('push', (e) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || './';
+  const url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const c of all) { if ('focus' in c) return c.focus(); }

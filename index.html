@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#14171c">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Denkzettel">
 <title>Denkzettel</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -367,6 +368,7 @@
   <div class="set-row"><span>Alle Termine ins Handy</span><button class="small-btn" id="exportAllBtn">Kalenderdatei (.ics)</button></div>
   <div class="set-row"><span>Push-Status</span><span id="pushStatus" class="block-meta" style="text-align:right">…</span></div>
   <div class="set-row"><span>Push testen</span><button class="small-btn" id="testNotifBtn">Test senden</button></div>
+  <div class="set-row" id="installRow" hidden><span>Als App installieren</span><button class="small-btn" id="installBtn">Installieren</button></div>
   <p class="set-note" id="pushNote">Ist Push aktiv, schickt der Server deine Erinnerungen pünktlich, auch wenn Denkzettel geschlossen ist.</p>
   <div class="confirm-actions" style="justify-content:flex-end">
     <button class="small-btn primary" id="settingsClose">Fertig</button>
@@ -1117,6 +1119,7 @@
   const notifSupported = 'Notification' in window;
   const pushSupported = notifSupported && 'serviceWorker' in navigator && 'PushManager' in window;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /android/i.test(navigator.userAgent);
   const isStandalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   const KEY_DEVICE = 'denkzettel_device_v1';
   let swReg = null;
@@ -1259,6 +1262,10 @@
     if (Notification.permission === 'denied'){
       return show(isIOS
         ? 'Mitteilungen sind blockiert. Erlaube sie unter Einstellungen › Mitteilungen › Denkzettel.'
+        : isAndroid
+        ? (isStandalone
+          ? 'Benachrichtigungen sind blockiert. Halte das Denkzettel-Symbol gedrückt › App-Info › Benachrichtigungen › erlauben.'
+          : 'Benachrichtigungen sind blockiert. Tippe in Chrome links neben der Adresse auf das Symbol › Berechtigungen › Benachrichtigungen erlauben.')
         : 'Benachrichtigungen sind blockiert. Erlaube sie in den Browser-Einstellungen für diese Seite.');
     }
     if (PUSH.server === false && Notification.permission === 'granted'){
@@ -1278,7 +1285,7 @@
     if (notifSupported && Notification.permission === 'granted'){
       try{
         const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration());
-        if (reg){ await reg.showNotification(title, { body, tag, renotify: true, requireInteraction: true }); shown = true; }
+        if (reg){ await reg.showNotification(title, { body, tag, renotify: true, requireInteraction: true, icon: 'icon-192.png', badge: 'badge-96.png', vibrate: [200, 100, 200] }); shown = true; }
       }catch(e){}
       if (!shown){
         try{ new Notification(title, { body, tag }); shown = true; }catch(e){}
@@ -1447,7 +1454,9 @@
         useKeyboardDictation(); return;
       }
       const msg = e.error === 'not-allowed'
-        ? 'Mikrofon ist blockiert. Erlaube es in den Einstellungen.'
+        ? (isAndroid
+          ? 'Mikrofon ist blockiert. Erlaube es über das Symbol links neben der Adresse › Berechtigungen › Mikrofon.'
+          : 'Mikrofon ist blockiert. Erlaube es in den Einstellungen.')
         : e.error === 'no-speech' ? 'Ich habe nichts gehört. Nochmal tippen und sprechen.'
         : 'Diktat hat nicht geklappt. Du kannst auch tippen.';
       setStatus(msg, true);
@@ -1500,6 +1509,22 @@
     if (!ok) showToast('Kein Push möglich', isIOS && !isStandalone ? 'Füge Denkzettel zuerst zum Home-Bildschirm hinzu und öffne die App von dort.' : 'Benachrichtigungen sind nicht erlaubt oder der Server ist nicht erreichbar.');
   };
   $('notifAllowBtn').onclick = enablePush;
+
+  // Android/Chrome: eigener „Installieren“-Knopf (Push geht dort auch ohne Installation)
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    $('installRow').hidden = false;
+  });
+  window.addEventListener('appinstalled', () => { installPrompt = null; $('installRow').hidden = true; });
+  $('installBtn').onclick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    try{ await installPrompt.userChoice; }catch(e){}
+    installPrompt = null;
+    $('installRow').hidden = true;
+  };
 
   /* =====================================================================
      Start
